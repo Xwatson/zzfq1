@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>专注番茄</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg: #fdf6f0;
+      --fg: #2b2b2b;
+      --accent: #d9480f;
+      --muted: #868e96;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+    }
+    .app { text-align: center; padding: 2rem; }
+    .app h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 1.5rem; }
+    .status {
+      display: inline-block;
+      padding: .25rem .75rem;
+      border-radius: 999px;
+      font-size: .875rem;
+    }
+    .time {
+      font-size: 5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      margin: 1rem 0 1.5rem;
+    }
+    .controls { display: flex; gap: .75rem; justify-content: center; }
+    .controls button {
+      font: inherit;
+      padding: .5rem 1.25rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--accent);
+      cursor: pointer;
+    }
+    .controls button.primary { background: var(--accent); color: #fff; }
+    .controls button:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* 状态 class 挂在 .app 上,由后续工作项切换 */
+    .app.is-idle .status    { background: #e9ecef; color: var(--muted); }
+    .app.is-running .status { background: #ffe8cc; color: var(--accent); }
+    .app.is-paused .status  { background: #e7f5ff; color: #1971c2; }
+  </style>
+</head>
+<body>
+  <main id="app" class="app is-idle">
+    <h1>专注番茄</h1>
+    <span id="status" class="status">未开始</span>
+    <div id="time" class="time" aria-live="polite">--:--</div>
+    <div class="controls">
+      <button id="btn-start" class="primary" type="button">开始</button>
+      <button id="btn-pause" type="button" disabled>暂停</button>
+      <button id="btn-reset" type="button" disabled>重置</button>
+    </div>
+  </main>
+
+  <script src="pomodoro-core.js"></script>
+  <script>
+    'use strict';
+    (function () {
+      var P = window.Pomodoro;
+      if (!P) {
+        console.error('pomodoro-core.js 未加载，请确认它和 index.html 在同一目录');
+        return;
+      }
+      var timeEl = document.getElementById('time');
+      // 骨架阶段只渲染初始时间;计时逻辑在 ZZF111-2 及之后实现
+      timeEl.textContent = P.formatTime(P.FOCUS_MS);
+    })();
+  </script>
+</body>
+</html>
