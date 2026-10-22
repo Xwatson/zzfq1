@@ -95,6 +95,48 @@
       test('formatTime: NaN 按 0 → 00:00', function () {
         assertEqual(P.formatTime(NaN), '00:00');
       });
+
+      test('createIdleState: 未开始显示 25:00', function () {
+        var s = P.createIdleState();
+        assertEqual(s.status, 'idle');
+        assertEqual(P.formatTime(P.getRemainingMs(s, 123456)), '25:00');
+      });
+      test('startTimer: endAt = now + 25 分钟，状态 running', function () {
+        var s = P.startTimer(1000);
+        assertEqual(s.status, 'running');
+        assertEqual(s.endAt, 1000 + P.FOCUS_MS);
+      });
+      test('getRemainingMs: 开始那一刻 = 25 分钟', function () {
+        assertEqual(P.getRemainingMs(P.startTimer(1000), 1000), P.FOCUS_MS);
+      });
+      test('getRemainingMs: 开始后 1 秒 → 24:59', function () {
+        assertEqual(P.formatTime(P.getRemainingMs(P.startTimer(1000), 2000)), '24:59');
+      });
+      test('getRemainingMs: 剩 425 秒 → 07:05', function () {
+        var s = P.startTimer(0);
+        assertEqual(P.formatTime(P.getRemainingMs(s, P.FOCUS_MS - 425000)), '07:05');
+      });
+      test('getRemainingMs: 到 endAt → 0', function () {
+        var s = P.startTimer(0);
+        assertEqual(P.getRemainingMs(s, s.endAt), 0);
+      });
+      test('getRemainingMs: 超过 endAt 1 秒仍为 0,不出现负数', function () {
+        var s = P.startTimer(0);
+        assertEqual(P.getRemainingMs(s, s.endAt + 1000), 0);
+      });
+      test('isFinished: 到点前 false,到点 true', function () {
+        var s = P.startTimer(0);
+        assertEqual(P.isFinished(s, s.endAt - 1), false);
+        assertEqual(P.isFinished(s, s.endAt), true);
+      });
+      test('isFinished: idle 状态为 false', function () {
+        assertEqual(P.isFinished(P.createIdleState(), 0), false);
+      });
+      test('finishTimer: 回到 idle 并停在 00:00', function () {
+        var s = P.finishTimer();
+        assertEqual(s.status, 'idle');
+        assertEqual(P.formatTime(P.getRemainingMs(s, 0)), '00:00');
+      });
     }
 
     report();

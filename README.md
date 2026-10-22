@@ -70,6 +70,8 @@ README.md           本文件
 | `is-running` | 专注中 |
 | `is-paused` | 已暂停 |
 
+开始/暂停共用一个按钮 `#btn-start`:计时中文字为「暂停」,其余为「开始」。
+
 ### 计时规则
 
 后台标签页的 `setInterval` / `setTimeout` 会被浏览器节流，所以：

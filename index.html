@@ -63,7 +63,6 @@
     <div id="time" class="time" aria-live="polite">--:--</div>
     <div class="controls">
       <button id="btn-start" class="primary" type="button">开始</button>
-      <button id="btn-pause" type="button" disabled>暂停</button>
       <button id="btn-reset" type="button" disabled>重置</button>
     </div>
   </main>
@@ -78,8 +77,48 @@
         return;
       }
       var timeEl = document.getElementById('time');
-      // 骨架阶段只渲染初始时间;计时逻辑在 ZZF111-2 及之后实现
-      timeEl.textContent = P.formatTime(P.FOCUS_MS);
+      var startBtn = document.getElementById('btn-start');
+
+      var state = P.createIdleState();
+      var timerId = null;
+
+      function render() {
+        timeEl.textContent = P.formatTime(P.getRemainingMs(state, Date.now()));
+        // 计时中「开始」按钮变为「暂停」
+        startBtn.textContent = state.status === 'running' ? '暂停' : '开始';
+      }
+
+      // 走完一个番茄:停表并停在 00:00。集中在这里，方便后续工作项复用
+      function finish() {
+        clearTimeout(timerId);
+        timerId = null;
+        state = P.finishTimer();
+        render();
+      }
+
+      // 定时器只负责刷新显示：每次在剩余秒数变化后稍晚一点触发，避免漂移导致跳秒
+      function tick() {
+        var now = Date.now();
+        if (P.isFinished(state, now)) {
+          finish();
+          return;
+        }
+        render();
+        var remaining = P.getRemainingMs(state, now);
+        var delay = remaining % 1000 || 1000;
+        timerId = setTimeout(tick, delay + 20);
+      }
+
+      startBtn.addEventListener('click', function () {
+        if (state.status === 'running') {
+          // 暂停逻辑由 ZZF111-3 实现
+          return;
+        }
+        state = P.startTimer(Date.now());
+        tick();
+      });
+
+      render();
     })();
   </script>
 </body>
