@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>专注番茄 · 测试</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 2rem; color: #222; }
+    h1 { font-size: 1.25rem; }
+    #summary { font-weight: 600; margin-bottom: 1rem; }
+    #summary.pass { color: #1a7f37; }
+    #summary.fail { color: #cf222e; }
+    ul { list-style: none; padding: 0; }
+    li { padding: .25rem .5rem; margin: .125rem 0; border-radius: 4px; font-family: ui-monospace, Consolas, monospace; }
+    li.pass { background: #dafbe1; color: #1a7f37; }
+    li.fail { background: #ffebe9; color: #cf222e; }
+  </style>
+</head>
+<body>
+  <h1>专注番茄 · 纯函数测试</h1>
+  <div id="summary">运行中…</div>
+  <ul id="results"></ul>
+
+  <script src="pomodoro-core.js"></script>
+  <script>
+    'use strict';
+
+    // —— 极简测试工具 ——
+    var results = [];
+
+    function assertEqual(actual, expected) {
+      if (actual !== expected) {
+        throw new Error('期望 ' + JSON.stringify(expected) + ',实际 ' + JSON.stringify(actual));
+      }
+    }
+
+    function test(name, fn) {
+      try {
+        fn();
+        results.push({ name: name, ok: true });
+      } catch (e) {
+        results.push({ name: name, ok: false, error: e && e.message ? e.message : String(e) });
+      }
+    }
+
+    function report() {
+      var list = document.getElementById('results');
+      var passed = 0;
+      results.forEach(function (r) {
+        var li = document.createElement('li');
+        li.className = r.ok ? 'pass' : 'fail';
+        li.textContent = (r.ok ? '✓ ' : '✗ ') + r.name + (r.ok ? '' : ' — ' + r.error);
+        list.appendChild(li);
+        if (r.ok) passed++;
+      });
+      var allOk = passed === results.length;
+      var summary = document.getElementById('summary');
+      summary.className = allOk ? 'pass' : 'fail';
+      summary.textContent = (allOk ? '全部通过' : '有失败') + ':' + passed + ' / ' + results.length;
+      document.title = (allOk ? '✓ ' : '✗ ') + passed + '/' + results.length + ' 专注番茄 · 测试';
+      if (!allOk) console.error('测试失败', results.filter(function (r) { return !r.ok; }));
+    }
+
+    // —— 用例 ——
+    var P = window.Pomodoro;
+
+    if (!P) {
+      results.push({ name: '加载 pomodoro-core.js', ok: false, error: 'window.Pomodoro 不存在，请确认 pomodoro-core.js 和 test.html 在同一目录' });
+    } else {
+      test('formatTime: 425000ms → 07:05', function () {
+        assertEqual(P.formatTime(425000), '07:05');
+      });
+      test('formatTime: 0 → 00:00', function () {
+        assertEqual(P.formatTime(0), '00:00');
+      });
+      test('formatTime: 25 分钟 → 25:00', function () {
+        assertEqual(P.formatTime(P.FOCUS_MS), '25:00');
+      });
+      test('formatTime: 60 分钟 → 60:00', function () {
+        assertEqual(P.formatTime(60 * 60 * 1000), '60:00');
+      });
+      test('formatTime: 999ms 向上取整 → 00:01', function () {
+        assertEqual(P.formatTime(999), '00:01');
+      });
+      test('formatTime: 1000ms 整秒不进位 → 00:01', function () {
+        assertEqual(P.formatTime(1000), '00:01');
+      });
+      test('formatTime: 1001ms 向上取整 → 00:02', function () {
+        assertEqual(P.formatTime(1001), '00:02');
+      });
+      test('formatTime: 负数按 0 → 00:00', function () {
+        assertEqual(P.formatTime(-1), '00:00');
+      });
+      test('formatTime: NaN 按 0 → 00:00', function () {
+        assertEqual(P.formatTime(NaN), '00:00');
+      });
+    }
+
+    report();
+  </script>
+</body>
+</html>
