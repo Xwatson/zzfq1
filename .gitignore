@@ -1,0 +1,10 @@
+# 系统与编辑器生成的文件
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# 若以后引入 node --test / Playwright
+node_modules/
